@@ -92,3 +92,9 @@ build 脚本里的两次 `cp` 是两个已踩实的坑：
 ## 许可证
 
 MIT
+
+---
+
+## 本站部署
+
+GitHub Pages 自动部署（推送 main 即构建）：https://cherry-wlz.github.io/
