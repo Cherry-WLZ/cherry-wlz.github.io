@@ -98,3 +98,5 @@ MIT
 ## 本站部署
 
 GitHub Pages 自动部署（推送 main 即构建）：https://cherry-wlz.github.io/
+
+> 站点已于 2026-11-08 通过 GitHub Pages 发布。
