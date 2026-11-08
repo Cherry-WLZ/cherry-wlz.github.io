@@ -80,10 +80,11 @@ const emptyForm = { name: '', contact: '', story: '', block: '', book: '', way: 
 function ContactForm() {
   const [form, setForm] = useState(emptyForm)
   const [result, setResult] = useState('')
+  const [status, setStatus] = useState('idle')
   const areaRef = useRef(null)
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
-  const submit = e => {
+  const submit = async e => {
     e.preventDefault()
     const text = [
       `称呼：${form.name.trim()}`,
@@ -95,6 +96,30 @@ function ContactForm() {
       `时间预期：${form.timing || '未选'}`,
     ].join('\n')
     setResult(text)
+    setStatus('sending')
+
+    const data = new FormData()
+    data.append('称呼', form.name.trim())
+    data.append('联系方式', form.contact.trim())
+    data.append('你想解决的那件事', form.story.trim())
+    data.append('你觉得自己卡在哪', form.block || '未选')
+    data.append('最近在读或想读的书', form.book.trim() || '未填')
+    data.append('你更想要哪种方式', form.way || '未选')
+    data.append('时间预期', form.timing || '未选')
+    data.append('_subject', '【拆书 × 优势】新的场景留言')
+    data.append('_captcha', 'false')
+    data.append('_template', 'table')
+
+    try {
+      const r = await fetch('https://formsubmit.co/ajax/664385229@qq.com', {
+        method: 'POST',
+        body: data,
+        headers: { Accept: 'application/json' },
+      })
+      setStatus(r.ok ? 'ok' : 'error')
+    } catch {
+      setStatus('error')
+    }
   }
 
   const copy = () => {
@@ -151,15 +176,23 @@ function ContactForm() {
       </div>
 
       <div className="btn-row">
-        <button type="submit" className="btn btn-primary">写好了，发我 →</button>
+        <button type="submit" className="btn btn-primary" disabled={status === 'sending'}>
+          {status === 'sending' ? '发送中…' : '写好了，发我 →'}
+        </button>
       </div>
       <p className="micro">不用写完整，也不用写得漂亮。填完我会在 48 小时内回复你，先聊清你的场景，再决定要不要一起做。</p>
 
-      {result && (
+      {status === 'ok' && (
         <div className="form-result">
           <strong style={{ color: '#2e2a42' }}>收到，你说的这件事我看到了。</strong>
           <p style={{ margin: '8px 0 0' }}>我会在 48 小时内回你，先问两个问题，再告诉你这件事可以怎么拆。如果它不适合用拆书的方式解决，我也会直接说，并给你一个别的方向。</p>
-          <p className="note" style={{ marginTop: 14 }}>点「用邮件发我」会打开一封写好的邮件，收件人已填好；也可以复制下面这段内容，通过微信或邮件发到 664385229@qq.com。</p>
+        </div>
+      )}
+
+      {status === 'error' && (
+        <div className="form-result">
+          <strong style={{ color: '#2e2a42' }}>这封留言没发出去。</strong>
+          <p style={{ margin: '8px 0 0' }}>可以复制下面这段内容，通过微信或邮件发到 664385229@qq.com，我一样会在 48 小时内回你。</p>
           <textarea ref={areaRef} readOnly value={result} />
           <div className="btn-row">
             <button type="button" className="btn btn-primary" onClick={copy}>复制内容</button>
