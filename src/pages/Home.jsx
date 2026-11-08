@@ -1,280 +1,364 @@
-import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import workshops, { seriesIntro, stageOf, statusLabelOf, shortDate, nextOpen, doneList, voteThemes } from '../data/workshops'
+import { useRef, useState } from 'react'
 
 const pains = [
-  { q: '收藏了一百篇干货，要用时一篇都找不到', a: '知识没有库，就等于没有。工作坊现场，先把它装进去。' },
-  { q: '公众号定了周更，三个月只发了两篇', a: '靠意志力的更新必断。让工作流替你写，你只管按发布。' },
-  { q: 'AI 工具收藏了一排，一个都没用起来', a: '工具不在多，在拆。拆透一个，胜过收藏十个。' },
-  { q: '看了很多 AI 课程，还是做不出自己的东西', a: '因为课里拆的是别人的案例。这里，拆你自己的。' },
+  '书读了不少，课也上了，遇到事还是原来的反应。',
+  '你明明挺能干，却总觉得自己在耗——可能是最强的那一面用过了头。',
+  '换岗、转行、述职之前，你说不清自己到底值钱在哪。',
 ]
 
-const chaifa = [
-  { k: '拆什么', d: '拆 AI 软件，拆 AI 本身——只拆 workbuddy 连接器里真实存在的：ima、微信读书、腾讯会议、企查查、飞猪……每一个都是当场拆开、当场接上的真软件。', icon: 'M4 7c0-1.66 3.58-3 8-3s8 1.34 8 3-3.58 3-8 3-8-1.34-8-3zm0 5c0 1.66 3.58 3 8 3s8-1.34 8-3m-16 5c0 1.66 3.58 3 8 3s8-1.34 8-3' },
-  { k: '怎么拆', d: '沿用拆书帮 RIA 方法论：R 找到软件里对你有用的片段，I 用自己的话重述它，A 规划出你的下一步行动。', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
-  { k: '拆为己用', d: '不是学完就散，是带走你自己的知识库、工作流、阵地和复盘看板。', icon: 'M16 7l-4 4-4-4m8 6l-4 4-4-4' },
+const differences = [
+  { alt: '优势测评', miss: '标签之后到底怎么办', mine: '把标签翻译回具体场景里的动作' },
+  { alt: '读书会、共读群', miss: '书和你自己到底什么关系', mine: '拆的是你的经历，书只是入口' },
+  { alt: '职业规划咨询', miss: '你自身已有的可用资源', mine: '从优势出发，不从模板出发' },
+  { alt: '心理疏导', miss: '下一步具体做什么', mine: '负责后半段：把看清变成做成' },
 ]
 
-// 八大模块全景（与导航同序：拆成长→拆经典→拆指南→拆搭子→拆软件→拆技能→拆专家→共拆AI；数字=站内真实资产）
-const modules = [
-  { k: '拆成长', emoji: '🧭', d: '三级九拆过级路线，33 个官方技能点逐项拆解', stat: '33 个', statLabel: '技能点 · TF1-1~TF3-3', href: '/learning-path', tile: 'bg-indigo-500/10', num: 'text-indigo-600' },
-  { k: '拆经典', emoji: '📖', d: '2255 本致用经典热拆库，1713 本已有拆页', stat: '1713 本', statLabel: '已有拆页 · 全库 2255 本', href: '/hot', tile: 'bg-rose-500/10', num: 'text-rose-600' },
-  { k: '拆指南', emoji: '📚', d: 'RIA 便签法全库共拆，六大兴趣模块连读', stat: '2255 本', statLabel: '19262 页拆页全库', href: 'https://www.aibay.asia/chailive/', tile: 'bg-teal-500/10', num: 'text-teal-600' },
-  { k: '拆搭子', emoji: '🤝', d: '5473 位拆书家名录，按城市/标签匹配搭子', stat: '5473 人', statLabel: '83 分舵 · 7 种合作模式', href: '/chaibuddy', tile: 'bg-amber-500/10', num: 'text-amber-600' },
-  { k: '拆软件', emoji: '🖥️', d: '工作坊当场拆开真 AI 软件，接回你的产线', stat: '4 期', statLabel: '真实软件 · 场场有产出', href: '/workshops', tile: 'bg-sky-500/10', num: 'text-sky-600' },
-  { k: '拆技能', emoji: '⚡', d: '每个技能拆成便签+信息图+可下载 Skill', stat: '210 个', statLabel: '技能拆解 · 全部可下载', href: '/skills', tile: 'bg-violet-500/10', num: 'text-violet-600' },
-  { k: '拆专家', emoji: '🧠', d: '思想家蒸馏成可召唤的领域 AI 专家团', stat: '8 套', statLabel: '思想体系 · 6 个专家团', href: '/skill-fusion', tile: 'bg-fuchsia-500/10', num: 'text-fuchsia-600' },
-  { k: '共拆AI', emoji: '🚀', d: '六条合作线全部开放，带着你的领域加入', stat: '6 条线', statLabel: '开源共建 · 挑一条进', href: '/coai', tile: 'bg-emerald-500/10', num: 'text-emerald-600' },
+const stages = [
+  { name: '一阶｜拆原文', do: '用一句话重述作者到底在说什么，去掉例子只留主张', get: '一个能被验证的判断' },
+  { name: '二阶｜拆自己', do: '在你的经历里找出「用对过」和「用反过」的两个真实场景', get: '一份看清自己优势的证据' },
+  { name: '三阶｜拆下一步', do: '把它压缩成一个小动作，小到这周就能做', get: '一个当周可执行的动作' },
 ]
 
-export default function Home() {
-  const nx = nextOpen()
-  const done = doneList()
-  // spotlight 焦点：优先下一场报名中的；全交付完则落最新已交付场（材料回看）；再退首场
-  const first = nx || done[done.length - 1] || workshops[0]
-  const rest = workshops.filter(w => w.id !== first.id)
+const services = [
+  {
+    name: '一对一优势解困 · 60 分钟',
+    verb: '聊清',
+    fields: [
+      ['适合谁', '手上有一件具体的事正卡着：一个决定、一次沟通、一个反复出现的反应'],
+      ['解决什么', '你看不清这件事里，自己的优势是被用对了，还是用过了头'],
+      ['交付什么', '一次对话 + 一页拆解记录（你的优势证据、用过头的地方、这周的下一步）+ 48 小时内一次文字跟进'],
+      ['怎么做', '你带一件事来，我带你走完三阶。不提前发长问卷，不做测评'],
+      ['价格与周期', '具体报价与可约时段，聊清场景后一起定'],
+    ],
+  },
+  {
+    name: '优势拆书小班 · 4 周',
+    verb: '练成',
+    fields: [
+      ['适合谁', '想系统地把优势用在自己的选择里，一个人拆容易走神，需要同伴照见的人'],
+      ['解决什么', '你对自己的优势只有模糊印象，说不清也验证不了'],
+      ['交付什么', '四次共拆 + 一本属于你自己的拆解手册 + 结营一次 30 分钟一对一'],
+      ['怎么做', '每周一次 90 分钟，6 到 8 人。每周拆一个主题：识别、用对、用过头、下一步。每人每周提交一张便签，现场互拆'],
+      ['价格与周期', '开班时间与费用确定后在这里更新，先聊清场景再决定'],
+    ],
+  },
+  {
+    name: '团队拆书工作坊 · 半天 3 小时',
+    verb: '带走',
+    fields: [
+      ['适合谁', '企业 HR、团队负责人、读书会社群——想让一群人用同一套语言谈「优势」的人'],
+      ['解决什么', '团队里「优势」是个空词，评价人、分配活、做复盘时各说各话'],
+      ['交付什么', '现场共拆 + 一张团队优势地图 + 一套可复用的拆书模板'],
+      ['怎么做', '从一段与场景强相关的原文切入，分小组拆自己团队的真实事件，最后合成团队语言'],
+      ['价格与周期', '按场次报价，需提前沟通选题'],
+    ],
+  },
+]
+
+const steps = [
+  { t: '说说你的场景', d: '填一个两分钟的表，写一件正在卡住的事。' },
+  { t: '48 小时内回你', d: '我告诉你能帮上什么，帮不上也会给你一个方向。' },
+  { t: '定一次拆解', d: '选一项服务，约时间，带上那件事。' },
+  { t: '带走一个动作', d: '结束时你手上有一个当周可做的动作，以及以后自查的方法。' },
+]
+
+const faqs = [
+  { q: '这和职业规划、心理咨询有什么不同？', a: '职业规划给你路径，心理咨询先接住情绪，我做的是后半段：把你已有的优势拆成这一周能做的动作。三者可以并行，我不替代它们。' },
+  { q: '我没读过书，或者读不下去，能来吗？', a: '能。拆书不要求你先读完。你只需要带一件真实发生过的事，书由我选、由我拆，你负责对照自己。' },
+  { q: '拆书是不是就是读书会？', a: '不是。读书会关心「书讲了什么」，拆书只关心「这段原文让你想起自己的哪件事、下一步你改哪一个动作」。' },
+  { q: '一定要先做优势测评吗？', a: '不需要。测评给的是标签，我们用的是你经历里的证据。你做过也可以带来，我们把它拆回具体场景。' },
+  { q: '一次 60 分钟真的能解决吗？', a: '一次只解决你带来的那一件事，不解决你的人生。但那件事结束后，你会拿到一个当周动作和一套自查方法，通常就够了。' },
+  { q: '收费和周期是怎样的？', a: '一对一、小班、工作坊三种方式各有报价，所有服务都先聊清场景再决定，聊不清我不会建议你买。' },
+]
+
+const blockOptions = ['说不清优势', '知道但用不出来', '优势用过头反而耗', '选择与转型卡住']
+const wayOptions = ['一对一', '小班', '工作坊', '还不确定']
+const timeOptions = ['这周内', '这个月内', '先了解']
+
+const emptyForm = { name: '', contact: '', story: '', block: '', book: '', way: '', timing: '' }
+
+function ContactForm() {
+  const [form, setForm] = useState(emptyForm)
+  const [result, setResult] = useState('')
+  const areaRef = useRef(null)
+  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
+
+  const submit = e => {
+    e.preventDefault()
+    const text = [
+      `称呼：${form.name.trim()}`,
+      `联系方式：${form.contact.trim()}`,
+      `我想解决的那件事：${form.story.trim()}`,
+      `我卡在哪：${form.block || '未选'}`,
+      `最近在读或想读的书：${form.book.trim() || '未填'}`,
+      `更想要的方式：${form.way || '未选'}`,
+      `时间预期：${form.timing || '未选'}`,
+    ].join('\n')
+    setResult(text)
+  }
+
+  const copy = () => {
+    if (areaRef.current) {
+      areaRef.current.select()
+      try { document.execCommand('copy') } catch { /* 用户可手动复制 */ }
+    }
+  }
+
+  const mail = () => {
+    window.location.href = `mailto:?subject=${encodeURIComponent('说说我卡住的那件事')}&body=${encodeURIComponent(result)}`
+  }
 
   return (
-    <div className="hero-wash">
-      {/* ==================== Hero ==================== */}
-      <section className="pt-36 pb-20 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <div className="eyebrow mb-4">拆书帮广州小蛮腰分舵 AI拆书工作坊阵地</div>
-            <h1 className="headline text-[44px] md:text-[64px] mb-6">
-              别再学 AI 了，<br />
-              <span className="gradient-text">把它拆开，为己所用。</span>
-            </h1>
-            <p className="text-[17px] md:text-[19px] leading-relaxed text-[#6e6e73] max-w-2xl mx-auto mb-9">
-              这里不教你收藏工具。每一期工作坊，我们当场拆开一个真实在跑的 AI 软件，
-              用拆书帮的 RIA 方法论拆为己用——3 小时，带走一件你亲手做出来的东西。
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <a href={first.link} className="btn-primary">
-                {nx ? '报名工作坊 →' : '回看课程材料 →'}
-              </a>
-              <Link to="/workshops" className="btn-secondary">
-                看全部主题 & 投票 →
-              </Link>
+    <form className="form-card" onSubmit={submit}>
+      <div className="form-grid">
+        <div className="field">
+          <label>怎么称呼你<span>*</span></label>
+          <input value={form.name} onChange={set('name')} required placeholder="怎么称呼你" />
+        </div>
+        <div className="field">
+          <label>联系方式<span>*</span></label>
+          <input value={form.contact} onChange={set('contact')} required placeholder="微信或邮箱，方便我回你" />
+        </div>
+        <div className="field full">
+          <label>你想解决的那件事<span>*</span> <span className="hint">说一件具体的事，两句话就够</span></label>
+          <textarea value={form.story} onChange={set('story')} required placeholder="最近哪件事让你觉得「我怎么又这样」，或者哪个决定你已经反复想了好几天" />
+        </div>
+        <div className="field full">
+          <label>你觉得自己卡在哪<span>*</span></label>
+          <select value={form.block} onChange={set('block')} required>
+            <option value="">选一个最接近的</option>
+            {blockOptions.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </div>
+        <div className="field">
+          <label>最近在读或想读的书 <span className="hint">选填</span></label>
+          <input value={form.book} onChange={set('book')} placeholder="在读什么，或者想读还没读的" />
+        </div>
+        <div className="field">
+          <label>你更想要哪种方式 <span className="hint">选填</span></label>
+          <select value={form.way} onChange={set('way')}>
+            <option value="">还不确定也可以空着</option>
+            {wayOptions.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </div>
+        <div className="field">
+          <label>时间预期 <span className="hint">选填</span></label>
+          <select value={form.timing} onChange={set('timing')}>
+            <option value="">选填</option>
+            {timeOptions.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div className="btn-row">
+        <button type="submit" className="btn btn-primary">写好了，发我 →</button>
+      </div>
+      <p className="micro">不用写完整，也不用写得漂亮。填完我会在 48 小时内回复你，先聊清你的场景，再决定要不要一起做。</p>
+
+      {result && (
+        <div className="form-result">
+          <strong style={{ color: '#2e2a42' }}>收到，你说的这件事我看到了。</strong>
+          <p style={{ margin: '8px 0 0' }}>我会在 48 小时内回你，先问两个问题，再告诉你这件事可以怎么拆。如果它不适合用拆书的方式解决，我也会直接说，并给你一个别的方向。</p>
+          <p className="note" style={{ marginTop: 14 }}>本站的表单接收通道还在配置中，请先复制下面这段内容，通过微信或邮件发给我；也可以直接打开邮件草稿。</p>
+          <textarea ref={areaRef} readOnly value={result} />
+          <div className="btn-row">
+            <button type="button" className="btn btn-primary" onClick={copy}>复制内容</button>
+            <button type="button" className="btn btn-ghost" onClick={mail}>打开邮件草稿</button>
+          </div>
+        </div>
+      )}
+    </form>
+  )
+}
+
+export default function Home() {
+  return (
+    <main id="top">
+      <section className="hero" id="hero">
+        <div className="wrap">
+          <div className="hero-card">
+            <div className="eyebrow">拆书 × 优势 · 一对一陪拆</div>
+            <h1>你的优势，<br /><em>可能一直在用反方向。</em></h1>
+            <p className="lead">我是优势教练，拆书帮三级拆书家、人力资源从业者。我不给你一份测评报告，我陪你拆开一段原文、也拆开你自己的经历，找到那个这周就能做的动作。</p>
+            <div className="btn-row">
+              <a href="#contact" className="btn btn-primary">说说我卡住的那件事</a>
+              <a href="#activities" className="btn btn-ghost">看看往期拆书活动</a>
             </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ==================== 学习者痛点 ==================== */}
-      <section className="py-20 px-4 bg-white border-y border-black/[.05]">
-        <div className="max-w-5xl mx-auto">
-          <div className="eyebrow mb-3 text-center">从你出发</div>
-          <h2 className="headline text-[30px] md:text-[38px] text-center mb-12">这些卡点，是不是很熟悉？</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            {pains.map((p, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: i * 0.08 }}
-                className="apple-card p-6"
-              >
-                <div className="text-[16px] font-semibold text-[#1d1d1f] mb-2.5">“{p.q}”</div>
-                <div className="text-[14px] leading-relaxed text-[#6e6e73]">{p.a}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ==================== 拆法 RIA 重释 ==================== */}
-      <section className="py-20 px-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="eyebrow mb-3 text-center">我们的拆法</div>
-          <h2 className="headline text-[30px] md:text-[38px] text-center mb-4">拆的是 AI，拆为己用</h2>
-          <p className="text-center text-[#6e6e73] text-[15px] mb-12 max-w-2xl mx-auto">
-            把 AI 软件拆成你的生产力。
-          </p>
-          <div className="grid md:grid-cols-3 gap-4">
-            {chaifa.map((c, i) => (
-              <motion.div
-                key={c.k}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: i * 0.1 }}
-                className="apple-card p-7 text-center"
-              >
-                <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-[#0071e3]/[.08] flex items-center justify-center">
-                  <svg className="w-6 h-6 text-[#0071e3]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d={c.icon} />
-                  </svg>
-                </div>
-                <div className="text-[18px] font-bold text-[#1d1d1f] mb-2.5">{c.k}</div>
-                <div className="text-[13.5px] leading-relaxed text-[#6e6e73]">{c.d}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ==================== 八大模块全景 ==================== */}
-      <section className="py-24 px-4 bg-[#f5f5f7] border-y border-black/[.05]">
-        <div className="max-w-6xl mx-auto">
-          <div className="eyebrow mb-3 text-center">站点全景 · 一图看懂</div>
-          <h2 className="headline text-[30px] md:text-[40px] text-center mb-4">
-            八个模块，一条<span className="gradient-text">「拆」的进阶线</span>
-          </h2>
-          <p className="text-center text-[#6e6e73] text-[15px] mb-14 max-w-2xl mx-auto">
-            从三级九拆的过级路，到全库共拆、找到搭子、拆开真软件、长出技能、召唤专家——最后加入共建。
-            每一站都有真实数字在跑，不摆概念。
-          </p>
-          <div className="relative">
-            <div className="hidden lg:block absolute top-[46px] left-[12%] right-[12%] h-[2px] rounded-full bg-gradient-to-r from-indigo-400/50 via-teal-400/50 to-fuchsia-400/50" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {modules.map((m, i) => (
-                <motion.div
-                  key={m.k}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.09 }}
-                >
-                  <a href={m.href} className="group block h-full apple-card p-5 !shadow-sm">
-                    <div className="flex lg:justify-center mb-4">
-                      <div className={`relative w-12 h-12 rounded-2xl ${m.tile} flex items-center justify-center text-2xl`}>
-                        {m.emoji}
-                        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white border border-black/10 text-[9px] font-bold text-[#86868b] flex items-center justify-center shadow-sm">{i + 1}</span>
-                      </div>
-                    </div>
-                    <div className="text-[17px] font-black text-[#1d1d1f] mb-1 lg:text-center">{m.k}</div>
-                    <div className="text-[11.5px] leading-snug text-[#6e6e73] mb-4 lg:text-center">{m.d}</div>
-                    <div className="lg:text-center">
-                      <div className={`text-[22px] font-black leading-none ${m.num}`}>{m.stat}</div>
-                      <div className="text-[10px] text-[#86868b] mt-1.5 tracking-wide">{m.statLabel}</div>
-                    </div>
-                  </a>
-                </motion.div>
-              ))}
+            <p className="micro">填完我会在 48 小时内回复你，先聊清你的场景，再决定要不要一起做。</p>
+            <div className="wordline">
+              <span>拆书</span><span>优势</span><span>正向发挥</span>
+              <span>一本书 · 一支笔 · 一张便签</span>
             </div>
           </div>
-          <div className="mt-10 text-center">
-            <a href="/coai" className="text-[13px] font-semibold text-[#0071e3] hover:text-[#1d1d1f] transition-colors">
-              六条合作线怎么选 → 看共拆AI 专页
-            </a>
-          </div>
         </div>
       </section>
 
-      {/* ==================== 工作坊主题 ==================== */}
-      <section className="py-20 px-4 bg-[#f5f5f7]">
-        <div className="max-w-5xl mx-auto">
-          <div className="eyebrow mb-3 text-center">工作坊全系列</div>
-          <h2 className="headline text-[30px] md:text-[38px] text-center mb-4">{nx ? `${shortDate(nx)}开课，` : '课程持续开，'}<span className="gradient-text">其余你说了算</span></h2>
-          <p className="text-center text-[#6e6e73] text-[15px] mb-12 max-w-3xl mx-auto">{seriesIntro}</p>
-
-          {/* 首场 spotlight */}
-          <div className="apple-card p-8 mb-4 border-[#0071e3]/25 shadow-[0_10px_36px_rgba(0,113,227,.10)]">
-            <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[12px] font-semibold mb-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0071e3] animate-pulse" />
-                  {statusLabelOf(first)}
-                </div>
-                <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                  <span className="text-[11px] text-[#86868b] font-semibold tracking-wide">拆的软件</span>
-                  {first.tools.map(t => (
-                    <span key={t} className="px-2 py-0.5 rounded-md bg-[#1d1d1f] text-white text-[12px] font-bold tracking-wide">{t}</span>
-                  ))}
-                </div>
-                <h3 className="text-[26px] font-bold text-[#1d1d1f] tracking-tight">{first.title}</h3>
-                <p className="text-[#6e6e73] text-[15px] mt-2 max-w-xl">{first.short}</p>
+      <section id="pains">
+        <div className="wrap">
+          <h2>如果你也这样，我们会聊得来</h2>
+          <div className="grid grid-3" style={{ marginTop: 34 }}>
+            {pains.map((t, i) => (
+              <div className="card" key={i}>
+                <div className="quote-mark">“</div>
+                <div className="quote">{t}</div>
               </div>
-              <a href={stageOf(first) === 'open' ? (first.signupUrl || first.link) : first.link} target={stageOf(first) === 'open' ? '_blank' : undefined} rel="noreferrer" className="btn-primary shrink-0">{stageOf(first) === 'open' ? '立即报名' : '材料回看'}</a>
-            </div>
-            <div className="grid sm:grid-cols-3 gap-3">
-              {[
-                ['时间', first.date],
-                ['地点', first.location],
-                ['费用', first.fee],
-              ].map(([k, v]) => (
-                <div key={k} className="rounded-xl bg-[#f5f5f7] px-4 py-3">
-                  <div className="text-[11px] text-[#86868b] font-semibold mb-0.5">{k}</div>
-                  <div className="text-[13px] text-[#1d1d1f] leading-snug">{v}</div>
-                </div>
+            ))}
+          </div>
+          <p className="lead" style={{ marginTop: 30, marginBottom: 0 }}>这三种，说到底是同一件事——你的优势，没有被放在对的位置上。</p>
+        </div>
+      </section>
+
+      <section className="alt" id="about">
+        <div className="wrap">
+          <div className="eyebrow">凭什么信我</div>
+          <h2>关于我：我拆过很多书，也拆过很多人</h2>
+          <div className="story" style={{ marginTop: 30 }}>
+            <p>做人力资源的那些年，我面过很多人，也送走过很多人。最让我放不下的不是能力不够的人，而是那些明明很强、却一直在用错方向的人——他们把最锋利的那一面，用来削自己。</p>
+            <p>后来我开始拆书。拆到第三年我才发现，拆书真正拆的从来不是书，是读的人。RIA 便签法要求你把一段原文用自己的话重述、写下自己真实发生过的经历、再写下一步怎么做。这三步走完，一个抽象的道理才会变成你身上的一个动作。</p>
+            <p>所以我现在的身份是优势教练：用拆书这套方法，陪你把「我的优势是什么」这种大问题，拆成「这周我在哪件事上先这样用一次」。</p>
+          </div>
+
+          <div style={{ marginTop: 8, marginBottom: 40 }}>
+            <span className="tag">拆得开</span><span className="tag">照得见</span><span className="tag">用得上</span>
+          </div>
+
+          <div className="credential">
+            <span>拆书帮三级拆书家</span>
+            <span>人力资源从业背景</span>
+            <span>RIA 便签法带拆</span>
+            <span>用拆书助力优势正向发挥</span>
+          </div>
+
+          <h2 style={{ fontSize: 24 }}>方法论：优势拆书三阶法</h2>
+          <p className="section-sub">三阶走完，一个抽象的道理才会变成你身上的一个动作。</p>
+          <div className="grid grid-3">
+            {stages.map(s => (
+              <div className="card" key={s.name}>
+                <h3>{s.name}</h3>
+                <p>{s.do}</p>
+                <p style={{ color: '#5d4e9b', marginBottom: 0 }}>带走：{s.get}</p>
+              </div>
+            ))}
+          </div>
+
+          <h2 style={{ fontSize: 24, marginTop: 64 }}>为什么是「拆书 × 优势」</h2>
+          <p className="section-sub">它和这些常见方式，差在最后一步。</p>
+          <table className="table">
+            <thead><tr><th>常见替代</th><th>它给不了的</th><th>我的位置</th></tr></thead>
+            <tbody>
+              {differences.map(d => (
+                <tr key={d.alt}><td>{d.alt}</td><td>{d.miss}</td><td>{d.mine}</td></tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="services">
+        <div className="wrap">
+          <div className="eyebrow">你能选什么</div>
+          <h2>三项服务，动词各不相同</h2>
+          <p className="section-sub">一张聊清，一张练成，一张带走。每一项结束，你手上都有一个当周能做的动作。</p>
+          <div className="grid grid-3">
+            {services.map(s => (
+              <div className="card" key={s.name}>
+                <div className="service-name">{s.name}</div>
+                <div className="service-verb">{s.verb}</div>
+                <ul className="service-fields">
+                  {s.fields.map(([k, v]) => <li key={k}><b>{k}</b>{v}</li>)}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <h2 style={{ fontSize: 24, marginTop: 72 }}>从现在到那一步，中间只有四步</h2>
+          <div className="grid grid-4" style={{ marginTop: 28 }}>
+            {steps.map((s, i) => (
+              <div className="card soft" key={s.t}>
+                <div className="step-num">{i + 1}</div>
+                <h3>{s.t}</h3>
+                <p style={{ marginBottom: 0 }}>{s.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="alt" id="cases">
+        <div className="wrap">
+          <div className="eyebrow">用结果说话</div>
+          <h2>她们后来做了什么</h2>
+          <p className="section-sub">每条案例都是「她当时的原话 → 我们拆了什么 → 现在怎样」。以下为格式示例，正式案例需取得客户授权后替换。</p>
+          <div className="grid grid-3">
+            <div className="card">
+              <div className="note" style={{ marginTop: 0, marginBottom: 14 }}>示例结构 · 待替换为真实案例</div>
+              <p className="big"><b>原话</b>：「我带团队总忍不住替他们做完，累到怀疑自己不适合做管理。」</p>
+              <p><b>拆了什么</b>：把「我执行力强」这条优势拆开——它在「交付」场景里是优势，在「带人」场景里用过了头，变成了替代而不是培养。三阶之后，她把这句「我来做」改成「你先做，我只改一处」。</p>
+              <p style={{ color: '#5d4e9b', marginBottom: 0 }}><b>现在</b>：「第一次开会我没动手，团队反而交得更快。」</p>
+            </div>
+            <div className="placeholder">
+              <strong>案例二 · 待补</strong><br />
+              对应「优势用过头反而耗」的人群，以及一对一优势解困服务。<br />
+              需要：客户原话、拆解过程、一个她自己做出的具体动作。
+            </div>
+            <div className="placeholder">
+              <strong>案例三 · 待补</strong><br />
+              对应「说不清自己值钱在哪」的人群，以及优势拆书小班。<br />
+              需要：客户原话、拆解过程、一句可引用的现状。
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* 02-04 期 compact */}
-          <div className="grid md:grid-cols-3 gap-4">
-            {rest.map((w, i) => (
-              <motion.div
-                key={w.id}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.07 }}
-              >
-                <a href={w.link} className="apple-card p-6 block h-full hover:shadow-[0_12px_32px_rgba(0,0,0,.08)] transition-shadow">
-                  <div className="inline-flex px-2.5 py-0.5 rounded-full bg-black/[.05] text-[#86868b] text-[11.5px] font-semibold mb-3">{statusLabelOf(w)}</div>
-                  <div className="text-[17px] font-bold text-[#1d1d1f] mb-1.5">{w.title}</div>
-                  <p className="text-[13.5px] text-[#6e6e73] leading-relaxed mb-3">{w.short}</p>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {w.tools.map(t => (
-                      <span key={t} className="px-2 py-0.5 rounded-md bg-[#1d1d1f] text-white text-[12px] font-bold tracking-wide">{t}</span>
-                    ))}
-                  </div>
-                </a>
-              </motion.div>
+      <section id="activities">
+        <div className="wrap">
+          <div className="eyebrow">方法正在真实发生</div>
+          <h2>我们每个月真的在拆书</h2>
+          <p className="section-sub">这一区放三样东西：一场近期活动的介绍、往期回顾、一个报名入口。活动介绍写成「这一次我们拆哪本书里的哪一段，为什么选它」，本身就是方法演示。</p>
+          <div className="grid grid-2">
+            <div className="card">
+              <h3>近期一场 · 具体场次公布后更新</h3>
+              <p>拆哪一段、为什么选它、谁能来、带走什么——这四项会在每场活动确定后写在这里。</p>
+              <p style={{ marginBottom: 0 }}>不需要读过这本书，需要带着一件自己的事。结束时带走一张写满的便签，和一个当周动作。</p>
+            </div>
+            <div className="placeholder">
+              <strong>往期回顾 · 待补</strong><br />
+              建议用「场次 + 人数 + 一句现场原话」三件套，比一排海报更有说服力。<br />
+              优先选那种「原来我一直用反了」的瞬间。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="alt" id="faq">
+        <div className="wrap">
+          <div className="eyebrow">打消最后的疑虑</div>
+          <h2>常见问题</h2>
+          <div style={{ marginTop: 34, maxWidth: 820 }}>
+            {faqs.map(f => (
+              <details className="faq" key={f.q}>
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
             ))}
           </div>
-
-          <div className="text-center mt-10">
-            <Link to="/workshops" className="btn-secondary">{voteThemes.length} 个主题 · 点「我支持」投票 →</Link>
+          <div className="placeholder" style={{ marginTop: 34 }}>
+            <strong>客户评价 · 待补</strong><br />
+            计划放 4 条，每条「一句原话 + 身份标签」。优先写「她让我把……改成了……」这种带动作的话，不写空泛的感谢。
           </div>
         </div>
       </section>
 
-      {/* ==================== 三个带走 ==================== */}
-      <section className="py-20 px-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="eyebrow mb-3 text-center">验收标准</div>
-          <h2 className="headline text-[30px] md:text-[38px] text-center mb-12">每期只认一个标准：你带走了什么</h2>
-          <div className="grid md:grid-cols-3 gap-4">
-            {[
-              ['做出来', '不是听完，是当场做出来。每期 3 小时，一半时间你在动手，讲师和助教巡场兜底。'],
-              ['带得走', '产出全部落在你自己的账号里：你的知识库、你的工作流、你的网站、你的看板。'],
-              ['用得上', '每期配 30 天行动计划和复盘卡。第 2 期开课时，先验收上一期你用得怎么样。'],
-            ].map(([t, d], i) => (
-              <motion.div
-                key={t}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: i * 0.1 }}
-                className="text-center px-4"
-              >
-                <div className="text-[34px] font-bold gradient-text mb-3">0{i + 1}</div>
-                <div className="text-[18px] font-bold text-[#1d1d1f] mb-2">{t}</div>
-                <div className="text-[13.5px] leading-relaxed text-[#6e6e73]">{d}</div>
-              </motion.div>
-            ))}
+      <section id="contact">
+        <div className="wrap">
+          <div style={{ maxWidth: 720, marginBottom: 36 }}>
+            <div className="eyebrow">最后一步</div>
+            <h2>说说你正在卡住的那件事</h2>
+            <p className="lead" style={{ marginBottom: 0 }}>不用写完整，也不用写得漂亮。说一件事就好：最近哪件事让你觉得「我怎么又这样」，或者哪个决定你已经反复想了好几天。我会在 48 小时内回你，告诉你这件事可以怎么拆。</p>
           </div>
+          <ContactForm />
         </div>
       </section>
-
-      {/* ==================== CTA ==================== */}
-      <section className="py-20 px-4 bg-white border-t border-black/[.05]">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="headline text-[28px] md:text-[36px] mb-4">先上知识库，开课前就把方法装进口袋。</h2>
-          <p className="text-[#6e6e73] text-[15px] leading-relaxed mb-6">
-            这里是【小蛮腰AI拆书帮】的线上知识库：六期工作坊的全部课件与材料、25 本经典共拆电子书、TF1–TF3 拆书法全套指导，还有广州小蛮腰、北京宇宙中心两个分舵 500+ 期活动的真实拆书实录。AI 帮你把书拆成能用的能力——扫码订阅，随时搜、随时问。
-          </p>
-          <div className="flex flex-col items-center gap-3">
-            <img src="/images/ima-knowledge-qr.png" alt="【小蛮腰AI拆书帮】知识库二维码" className="w-[200px] rounded-2xl border border-black/[.06] shadow-[0_8px_28px_rgba(0,0,0,.10)]" />
-            <p className="text-[14px] text-[#6e6e73] font-semibold">微信或 ima 扫码，订阅【小蛮腰AI拆书帮】知识库</p>
-            <a href={nx ? first.link : '/workshops'} className="text-[13px] text-[#0071e3] hover:underline">{nx ? `了解第 ${parseInt(first.no, 10)} 期课程 →` : '看全部课程与材料回看 →'}</a>
-          </div>
-        </div>
-      </section>
-    </div>
+    </main>
   )
 }
