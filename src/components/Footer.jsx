@@ -7,6 +7,7 @@ export default function Footer() {
             <div className="footer-brand">拆书 × 优势</div>
             <p>用拆书助力优势正向发挥的优势教练。<br />拆得开 · 照得见 · 用得上</p>
             <p className="note">不给标准答案，只陪你把答案从自己身上拆出来。</p>
+            <p style={{ marginTop: 16 }}>联系邮箱：<a href="mailto:664385229@qq.com" style={{ color: '#5d4e9b' }}>664385229@qq.com</a></p>
           </div>
           <div>
             <div style={{ fontSize: 13, color: '#2e2a42', fontWeight: 600, marginBottom: 14 }}>页面导航</div>

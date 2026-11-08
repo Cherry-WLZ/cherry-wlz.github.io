@@ -105,7 +105,7 @@ function ContactForm() {
   }
 
   const mail = () => {
-    window.location.href = `mailto:?subject=${encodeURIComponent('说说我卡住的那件事')}&body=${encodeURIComponent(result)}`
+    window.location.href = `mailto:664385229@qq.com?subject=${encodeURIComponent('说说我卡住的那件事')}&body=${encodeURIComponent(result)}`
   }
 
   return (
@@ -159,11 +159,11 @@ function ContactForm() {
         <div className="form-result">
           <strong style={{ color: '#2e2a42' }}>收到，你说的这件事我看到了。</strong>
           <p style={{ margin: '8px 0 0' }}>我会在 48 小时内回你，先问两个问题，再告诉你这件事可以怎么拆。如果它不适合用拆书的方式解决，我也会直接说，并给你一个别的方向。</p>
-          <p className="note" style={{ marginTop: 14 }}>本站的表单接收通道还在配置中，请先复制下面这段内容，通过微信或邮件发给我；也可以直接打开邮件草稿。</p>
+          <p className="note" style={{ marginTop: 14 }}>点「用邮件发我」会打开一封写好的邮件，收件人已填好；也可以复制下面这段内容，通过微信或邮件发到 664385229@qq.com。</p>
           <textarea ref={areaRef} readOnly value={result} />
           <div className="btn-row">
             <button type="button" className="btn btn-primary" onClick={copy}>复制内容</button>
-            <button type="button" className="btn btn-ghost" onClick={mail}>打开邮件草稿</button>
+            <button type="button" className="btn btn-ghost" onClick={mail}>用邮件发我</button>
           </div>
         </div>
       )}
@@ -355,6 +355,7 @@ export default function Home() {
             <div className="eyebrow">最后一步</div>
             <h2>说说你正在卡住的那件事</h2>
             <p className="lead" style={{ marginBottom: 0 }}>不用写完整，也不用写得漂亮。说一件事就好：最近哪件事让你觉得「我怎么又这样」，或者哪个决定你已经反复想了好几天。我会在 48 小时内回你，告诉你这件事可以怎么拆。</p>
+            <p className="micro" style={{ marginTop: 16 }}>也可以直接写邮件到 <a href="mailto:664385229@qq.com" style={{ color: '#5d4e9b' }}>664385229@qq.com</a>。</p>
           </div>
           <ContactForm />
         </div>
